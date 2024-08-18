@@ -49,6 +49,11 @@
 
 - AWS Appsync
 
+- AWS Secret Manager
+
+```
+aws secretsmanager create-secret --name OPENAI_API_KEY --secret-string "$OPENAI_API_KEY"                                   
+```
 
 ## 備考
 
