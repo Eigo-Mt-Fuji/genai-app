@@ -81,6 +81,8 @@ const buildCustomResources = (backend: Backend<{
   reactAgentFunction.addEventSource(new S3EventSource(s3Bucket, {
     events: [EventType.OBJECT_CREATED],
   }));  
+
+  // add sec
 };
 buildCustomResources(backend);
 

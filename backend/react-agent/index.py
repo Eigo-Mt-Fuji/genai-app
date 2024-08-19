@@ -1,8 +1,11 @@
+import os
+
 from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_structured_chat_agent
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.image_tools import ImagePromptTemplate
-from langchain_core.image_tools import ImageInput
+from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
+from langchain_core.tools import ToolException, StructuredTool
+import boto3
+import base64
 
 # 在庫データベース検索用ツール
 def write_inventory(query) -> str:
@@ -19,7 +22,7 @@ inventory_tool = StructuredTool.from_function(
 # OpenAI APIの設定
 llm = ChatOpenAI(
     openai_api_key=os.environ["OPENAI_API_KEY"], 
-    model_name="gpt-4-vision"  # Assuming a multimodal model capable of handling images
+    model_name="gpt-4o"  # Assuming a multimodal model capable of handling images
 )
 
 system = '''
@@ -69,18 +72,20 @@ human = '''{input}
 (reminder to respond in a JSON blob no matter what)'''
 
 # ImagePromptTemplateの設定
-image_prompt = ImagePromptTemplate.from_messages(
+image_template = {"image_url": {"url": "data:image/png;base64,{image_data}"}}
+human_message_template = HumanMessagePromptTemplate.from_template([human, image_template])
+
+prompt = ChatPromptTemplate.from_messages(
     [
         ("system", system),
-        ("image", ImageInput("image_data")),  # Placeholder for image input
-        ("human", human),
+        human_message_template,
     ]
 )
 
 agent = create_structured_chat_agent(
     llm=llm,
     tools=[inventory_tool],
-    prompt=image_prompt,
+    prompt=prompt,
 )
 
 agent_chain = AgentExecutor(
@@ -133,6 +138,22 @@ def handler(event, context):
             "image_data": encode_image(image_data)
         }
         result = agent_chain.invoke(input=input_data)
-        print(result)
+        print(result["output"])
     except Exception as e:
         print(f"Error during agent execution: {e}")
+
+
+handler({
+    "Records": [
+        {
+            "s3": {
+                "bucket": {
+                    "name": "amplify-frontend-eigofuji-amplifytemplatebucketcc3-ia5b8dtfunxm"
+                },
+                "object": {
+                    "key": "test.png"
+                }
+            }
+        }
+    ]
+}, {})

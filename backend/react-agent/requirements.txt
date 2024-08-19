@@ -9,3 +9,4 @@ langchain-openai
 # https://github.com/openai/openai-python
 # openai-1.40.2
 openai
+boto3
