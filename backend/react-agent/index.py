@@ -6,11 +6,33 @@ from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplat
 from langchain_core.tools import ToolException, StructuredTool
 import boto3
 import base64
+import time
 
-# 在庫データベース検索用ツール
-def write_inventory(query) -> str:
-    print(f"Query: {query}")
-    return ""
+# DynamoDBクライアントの作成
+dynamodb = boto3.resource('dynamodb')
+
+TABLE_NAME = "InventoryTable"
+
+def write_inventory(ingredients) -> str:
+    print(f"Ingredients to store: {ingredients}")
+    
+    # DynamoDBテーブルを取得
+    table = dynamodb.Table(TABLE_NAME)
+    
+    try:
+        # 1行ずつDynamoDBに書き込み
+        for ingredient in ingredients["items"]:
+            if ingredient.strip():  # 空行を無視
+                table.put_item(
+                    Item={
+                        'ingredient_id': ingredient.strip(),  # primary keyとしてingredient名を使用
+                        'timestamp': int(time.time())  # オプションでタイムスタンプを追加
+                    }
+                )
+        return "InventoryWriter: store ingredient success"
+    except Exception as e:
+        print(f"Error writing to DynamoDB: {e}")
+        return f"Failed to store ingredients: {str(e)}"
 
 inventory_tool = StructuredTool.from_function(
     name="InventoryWriter",
@@ -44,6 +66,8 @@ Provide only ONE action per $JSON_BLOB, as shown:
   "action_input": $INPUT
 }}
 ```
+
+$INPUT in $JSON_BLOB, should have an ingredients attribute which contains sub-attribute "items" that list of item expected to store into inventory.
 
 Follow this format:
 

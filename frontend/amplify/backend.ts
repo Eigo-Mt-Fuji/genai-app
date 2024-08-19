@@ -3,7 +3,7 @@ import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { storage } from './storage/resource';
 import { Policy, PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
-import { Stack } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Bucket, EventType } from 'aws-cdk-lib/aws-s3';
 import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
@@ -11,6 +11,7 @@ import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
 import { BackendAuth } from '@aws-amplify/backend-auth';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { StorageResources } from '@aws-amplify/backend-storage';
+import { Table, AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 
 /**
  * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
@@ -82,7 +83,19 @@ const buildCustomResources = (backend: Backend<{
     events: [EventType.OBJECT_CREATED],
   }));  
 
-  // add sec
+  // Add DynamoDB table resource
+  const inventoryTable = new Table(crStack, 'InventoryTable', {
+    partitionKey: { name: 'ingredient_id', type: AttributeType.STRING },
+    sortKey: { name: 'timestamp', type: AttributeType.NUMBER },
+    tableName: 'InventoryTable',
+    removalPolicy: RemovalPolicy.RETAIN, // Change to DESTROY if you want the table to be removed when the stack is deleted
+  });
+
+  // Add permissions for Lambda functions to access DynamoDB table
+  inventoryTable.grantReadWriteData(ragAgentFunction);
+  inventoryTable.grantReadWriteData(reactAgentFunction);
+  
+
 };
 buildCustomResources(backend);
 
