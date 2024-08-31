@@ -1,3 +1,6 @@
+import * as path from 'path';
+import * as cr from 'aws-cdk-lib/custom-resources';
+import * as cdk from 'aws-cdk-lib';
 import { Backend, defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
@@ -12,6 +15,9 @@ import { BackendAuth } from '@aws-amplify/backend-auth';
 import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
 import { StorageResources } from '@aws-amplify/backend-storage';
 import { Table, AttributeType } from 'aws-cdk-lib/aws-dynamodb';
+import { DatabaseCluster,  DatabaseClusterEngine, AuroraPostgresEngineVersion, Credentials, ParameterGroup } from 'aws-cdk-lib/aws-rds';
+import { Vpc, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 
 /**
  * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
@@ -48,7 +54,7 @@ const allowStoragePolicy = new Policy(existingStack, 'allowManageStoragePolicy',
 
 backend.auth.resources.authenticatedUserIamRole.attachInlinePolicy(allowStoragePolicy);
 
-const buildCustomResources = (backend: Backend<{
+const buildCustomResources = async (backend: Backend<{
     auth: ConstructFactory<BackendAuth>;
     data: ConstructFactory<AmplifyGraphqlApi>;
     storage: ConstructFactory<ResourceProvider<StorageResources>>;
@@ -94,8 +100,125 @@ const buildCustomResources = (backend: Backend<{
   // Add permissions for Lambda functions to access DynamoDB table
   inventoryTable.grantReadWriteData(ragAgentFunction);
   inventoryTable.grantReadWriteData(reactAgentFunction);
-  
 
+  // VPC and Security group configuration for RDS
+  const vpc = new Vpc(crStack, 'RdsVpc', { maxAzs: 2 });
+  const securityGroup = new SecurityGroup(crStack, 'RdsSecurityGroup', {
+    vpc,
+    allowAllOutbound: true,
+    securityGroupName: 'AuroraSecurityGroup',
+  });
+
+  // Secrets Manager for DB credentials
+  const dbSecret = new Secret(crStack, 'DbSecret', {
+    secretName: 'AuroraBedrockDbSecret',
+    generateSecretString: {
+      secretStringTemplate: JSON.stringify({
+        username: 'bedrock_user',
+      }),
+      generateStringKey: 'password',
+    },
+  });
+
+  // Create Aurora PostgreSQL DB Cluster
+  const auroraCluster = new DatabaseCluster(crStack, 'AuroraCluster', {
+    engine: DatabaseClusterEngine.auroraPostgres({
+      version: AuroraPostgresEngineVersion.VER_14_6,  // Set to a supported version that works with pgvector
+    }),
+    instanceProps: {
+      vpc,
+      securityGroups: [securityGroup],
+      vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
+    },
+    credentials: Credentials.fromSecret(dbSecret),
+    defaultDatabaseName: 'bedrock_db',
+    parameterGroup: ParameterGroup.fromParameterGroupName(crStack, 'ParameterGroup', 'default.aurora-postgresql14'), // Adjust parameter group as needed
+  });
+
+  // Post-deployment: Run SQL commands via a Lambda function
+  const dbSetupFunction = new Function(crStack, 'DbSetupFunction', {
+    runtime: Runtime.PYTHON_3_12,
+    handler: 'index.handler',
+    code: Code.fromAsset('../backend/db-setup'),
+    environment: {
+      DB_SECRET_ARN: dbSecret.secretArn,
+      DB_CLUSTER_ARN: auroraCluster.clusterArn,
+    },
+  });
+
+  dbSetupFunction.addToRolePolicy(new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ['rds-data:ExecuteStatement', 'secretsmanager:GetSecretValue'],
+    resources: [auroraCluster.clusterArn, dbSecret.secretArn],
+  }));
+
+  // Outputs
+  crStack.exportValue(auroraCluster.clusterEndpoint.hostname, { name: 'AuroraClusterEndpoint' });
+  crStack.exportValue(dbSecret.secretArn, { name: 'DbSecretArn' });
+
+  // Example of the SQL commands to be executed by the dbSetupFunction:
+  /*
+    CREATE EXTENSION IF NOT EXISTS vector;
+    SELECT extversion FROM pg_extension WHERE extname='vector';
+    CREATE SCHEMA bedrock_integration;
+    CREATE ROLE bedrock_user WITH PASSWORD 'password' LOGIN;
+    GRANT ALL ON SCHEMA bedrock_integration to bedrock_user;
+    CREATE TABLE bedrock_integration.bedrock_kb (id uuid PRIMARY KEY, embedding vector(1536), chunks text, metadata json);
+    CREATE INDEX on bedrock_integration.bedrock_kb USING hnsw (embedding vector_cosine_ops);
+  */
+  // Lambda-backed Custom Resourceの設定
+  const bedrockLambda = new Function(crStack, 'BedrockLambda', {
+    runtime: Runtime.NODEJS_20_X,
+    handler: 'index.handler',
+    code: Code.fromAsset(path.join(__dirname, 'bedrock-lambda')), // Lambdaコードのパス
+    environment: {
+      DB_SECRET_ARN: dbSecret.secretArn,
+      DB_CLUSTER_ARN: auroraCluster.clusterArn,
+    },
+  });
+
+  bedrockLambda.addToRolePolicy(new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ['bedrock:CreateKnowledgeBase', 'secretsmanager:GetSecretValue', 'rds-data:ExecuteStatement'],
+    resources: ['*'], // 必要に応じてリソースを特定する
+  }));
+
+  // カスタムリソースプロバイダーの設定
+  const provider = new cr.Provider(crStack, 'KnowledgeBaseProvider', {
+    onEventHandler: bedrockLambda,
+  });
+
+  // カスタムリソースの作成
+  new cdk.CustomResource(crStack, 'CreateKnowledgeBase', {
+    serviceToken: provider.serviceToken,
+    properties: {
+      name: 'YourKnowledgeBaseName',
+      description: 'A description of your knowledge base',
+      instructions: 'Instructions on what the knowledge base should do',
+      foundationModel: 'OpenAI GPT-4',
+      roleArn: 'arn:aws:iam::123456789012:role/YourBedrockRoleArn',
+      storageConfiguration: {
+        type: 'aurora',
+        rdsConfiguration: {
+          endpoint: auroraCluster.clusterEndpoint.hostname,
+          port: 5432,
+          databaseName: 'bedrock_db',
+          dbUser: 'bedrock_user',
+          dbPassword: dbSecret.secretValueFromJson('password').toString(),
+        },
+      },
+      dataSourceConfiguration: {
+        s3DataSource: {
+          bucket: 'your-s3-bucket-name',
+          keyPrefix: 'your/data/source/prefix/',
+        },
+      },
+      vectorIngestionConfiguration: {
+        chunkSize: 1000,
+        overlapSize: 50,
+      },
+    },
+  });
 };
 buildCustomResources(backend);
 
