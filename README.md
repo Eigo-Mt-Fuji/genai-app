@@ -276,3 +276,80 @@ Action:
       - プロンプトインジェクション対策
         - これについては最新の事例を知る
           - 非公開の指示やBingチャットの開発用コードネームを引き出すことに成功したなど）
+
+
+```
+Aurora PostgreSQL DB クラスターを Amazon Bedrock のナレッジベースとして使用
+
+
+Aurora PostgreSQL DB クラスター作成 
+
+https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.VectorDB.html
+
+・Data API を有効化
+  サポートされているバージョン
+    Data API は、MySQL エンジンを使用するプロビジョンドまたは Aurora Serverless v2 DB クラスターでは使用できません
+  サポートされているデータ型（ジオメトリ型や金額型など、一部のデータ型をサポートしていません）
+    UnsupportedResultException
+
+・拡張機能pgvectorインストール
+  ・バージョン要件
+    pgvector 0.5.0以上
+      ・HNSW インデックス作成をサポートしているバージョンを使用する
+        ・HNSWは、高次元空間における最近傍探索問題を効率的に解決するアルゴリズム https://qiita.com/yo-naka/items/d3cc001ebeffab5442ea
+  ・インストールクエリ（マスターユーザーを使用してデータベースにログインして実行）
+    CREATE EXTENSION IF NOT EXISTS vector;
+    SELECT extversion FROM pg_extension WHERE extname='vector';
+
+・AWS Bedrock用セットアップ
+  ・スキーマ作成
+    CREATE SCHEMA bedrock_integration;
+  ・ロール作成
+    CREATE ROLE bedrock_user WITH PASSWORD password LOGIN;
+    GRANT ALL ON SCHEMA bedrock_integration to bedrock_user;
+  ・テーブル作成
+    CREATE TABLE bedrock_integration.bedrock_kb (id uuid PRIMARY KEY, embedding vector(1536), chunks text, metadata json);
+    CREATE INDEX on bedrock_integration.bedrock_kb USING hnsw (embedding vector_cosine_ops);
+  ・データベースシークレットを作成
+    https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_database_secret.html
+      Secret type: Amazon RDS database (includes Aurora)
+      Secret name
+      Description
+      Tags
+      Resource permissions
+      Replicate secret
+      Configure rotation
+  ・詳細情報を収集
+    ・Amazon Aurora DB クラスターの ARN
+    ・シークレット ARN
+    ・データベース名 (postgres など）
+    ・テーブル bedrock_integration.bedrock_kb
+        id
+        chunks text
+        embedding vector(1536)
+        metadata json
+          - Metadata that related to your knowledge base that Amazon Bedrock manages
+          - Metadata that you associate with your source files
+            - set up filtering 
+            - in other vector stores, you don't have to set up these fields for filtering
+2. ナレッジベースを作成
+  https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-create.html
+    - CreateKnowledgeBase request with a Agents for Amazon Bedrock build-time endpoint
+      - provide the 
+        - name
+        - description
+        - instructions for what it should do
+        - foundation model for it to orchestrate with.
+        - roleArn
+          - the ARN with permissions to create a knowledge base
+        - knowledgeBaseConfiguration
+          - embeddingModelArn
+        - storageConfiguration
+          - configuration for your vector store
+        - rdsConfiguration
+          - For an Amazon Aurora database, use the rdsConfiguration object.
+        - dataSourceConfiguration
+          - Provide the connection information for the data source files in the dataSourceConfiguration field.
+        - vectorIngestionConfiguration
+          - Specify how to chunk the data sources in the vectorIngestionConfiguration field.
+```
