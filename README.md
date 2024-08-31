@@ -279,6 +279,9 @@ Action:
 
 
 ```
+
+
+```
 Aurora PostgreSQL DB クラスターを Amazon Bedrock のナレッジベースとして使用
 
 
