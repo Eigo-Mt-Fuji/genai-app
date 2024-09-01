@@ -338,7 +338,18 @@ https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/AuroraUserGuide/AuroraPostgre
             - in other vector stores, you don't have to set up these fields for filtering
 
 2. ナレッジベース構築用s3データソース作成
+  https://docs.aws.amazon.com/ja_jp/bedrock/latest/userguide/knowledge-base-ds.html
 
+  - サポートされているファイル形式(ただし、ドキュメントの高度な解析を使用する場合は、2024.8.31 現在サポートされているのはPDFファイル形式のみ)
+    - プレーンテキスト	.txt
+    - マークダウン	.md
+    - HyperText マークアップ言語	.html
+    - Microsoft Word ドキュメント	.doc/.docx
+    - カンマ区切り値	.csv
+    - Microsoft Excel スプレッドシート	.xls/.xlsx
+    - ポータブルドキュメント	.pdf
+  - ファイルサイズ制限
+    - 50 MB以下
 3. ナレッジベースを作成
   https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-create.html
     - CreateKnowledgeBase request with a Agents for Amazon Bedrock build-time endpoint
