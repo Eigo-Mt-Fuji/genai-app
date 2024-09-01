@@ -363,5 +363,6 @@ https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/AuroraUserGuide/AuroraPostgre
 4. bedrock embedding モデルで質問のテキストをベクトル化する
   https://dev.classmethod.jp/articles/amazon-bedrock-titan-embeddings/
 
-5. ナレッジベース検索
+5. pgvector関数でbedrockナレッジベース検索
+  https://github.com/pgvector/pgvector
 ```
