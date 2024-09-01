@@ -286,7 +286,7 @@ Action:
 Aurora PostgreSQL DB クラスターを Amazon Bedrock のナレッジベースとして使用
 
 
-Aurora PostgreSQL DB クラスター作成 
+1. Aurora PostgreSQL DB クラスター作成 
 
 https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/AuroraUserGuide/AuroraPostgreSQL.VectorDB.html
 
@@ -336,7 +336,10 @@ https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/AuroraUserGuide/AuroraPostgre
           - Metadata that you associate with your source files
             - set up filtering 
             - in other vector stores, you don't have to set up these fields for filtering
-2. ナレッジベースを作成
+
+2. ナレッジベース構築用s3データソース作成
+
+3. ナレッジベースを作成
   https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-create.html
     - CreateKnowledgeBase request with a Agents for Amazon Bedrock build-time endpoint
       - provide the 
@@ -356,4 +359,9 @@ https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/AuroraUserGuide/AuroraPostgre
           - Provide the connection information for the data source files in the dataSourceConfiguration field.
         - vectorIngestionConfiguration
           - Specify how to chunk the data sources in the vectorIngestionConfiguration field.
+
+4. bedrock embedding モデルで質問のテキストをベクトル化する
+  https://dev.classmethod.jp/articles/amazon-bedrock-titan-embeddings/
+
+5. ナレッジベース検索
 ```
