@@ -1,20 +1,13 @@
-## 開発環境
+## Running locally
 
-- Node.jsバージョン
-
-```
-node --version # v22.6.0 or later
-```
-
-- ローカルサーバ起動
+- You will need to use the environment variables
+  - [defined in `.env.example`](.env.example) to run Next.js AI Chatbot. 
+  - `.env` file is all that is necessary.
+  - should not commit your `.env` file or it will expose secrets that will allow others to control access to your various OpenAI and authentication provider accounts.
 
 ```bash
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-- AWS sandbox環境デプロイ
-
-```
-npx ampx sandbox
-```
-
+- Your app template should now be running on [localhost:3000](http://localhost:3000/).
