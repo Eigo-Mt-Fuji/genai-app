@@ -95,6 +95,7 @@ aws secretsmanager create-secret --name OPENAI_API_KEY --secret-string "$OPENAI_
 - [LMSYS arena leaderboard](https://lmarena.ai/?leaderboard)
 - [superlinked.com - vector db comparison 2024](https://superlinked.com/vector-db-comparison)
   - [pgvector](https://github.com/pgvector/pgvector)
+- [graphrag](https://blog.langchain.dev/enhancing-rag-based-applications-accuracy-by-constructing-and-leveraging-knowledge-graphs/)
 
 ```
 eigofujikawa@EigoFujawanoMBP react-agent % python index.py
