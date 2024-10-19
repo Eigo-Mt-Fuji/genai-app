@@ -1,5 +1,10 @@
 # README
 
+
+生成AI使い始めた→用語理解した→プロンプトエンジニアリング分かりだした→Langchaon学ぼう→自分でもRAG を実装するぞ→エージェントアプリケーションアーキテクチャ設計
+をするのに不足してるリテラシーを補うことにした
+→AWS AI Practitioner 取得目指す→Skill Builderで学習→合格→Responsive AIとRAG完全に理解した→設計のために評価基準の知識を今一度整理しよう、GraphRAGと仲良くなる→AWS以外の選択肢をちゃんと知ろう
+
 ## 概要
 
 - お酒っぽいノンアルコール飲料を提案するRAG を実装するぞ（目標）
@@ -95,6 +100,7 @@ aws secretsmanager create-secret --name OPENAI_API_KEY --secret-string "$OPENAI_
 - [LMSYS arena leaderboard](https://lmarena.ai/?leaderboard)
 - [superlinked.com - vector db comparison 2024](https://superlinked.com/vector-db-comparison)
   - [pgvector](https://github.com/pgvector/pgvector)
+- [graphrag](https://blog.langchain.dev/enhancing-rag-based-applications-accuracy-by-constructing-and-leveraging-knowledge-graphs/)
 
 ```
 eigofujikawa@EigoFujawanoMBP react-agent % python index.py
