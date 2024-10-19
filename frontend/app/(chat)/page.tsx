@@ -1,4 +1,4 @@
-import { nanoid } from '@/lib/utils'
+import { nanoid } from '@/lib/utils/utils'
 import { Chat } from '@/components/chat'
 import { AI } from '@/lib/chat/actions'
 import { auth } from '@/auth'

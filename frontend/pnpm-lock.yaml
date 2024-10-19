@@ -41,6 +41,18 @@ dependencies:
   '@radix-ui/react-tooltip':
     specifier: ^1.0.7
     version: 1.0.7(@types/react-dom@18.2.18)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+  '@trpc/client':
+    specifier: npm:@trpc/client@next
+    version: 11.0.0-rc.586(@trpc/server@11.0.0-rc.586)
+  '@trpc/next':
+    specifier: npm:@trpc/next@next
+    version: 11.0.0-rc.586(@tanstack/react-query@5.59.15)(@trpc/client@11.0.0-rc.586)(@trpc/react-query@11.0.0-rc.586)(@trpc/server@11.0.0-rc.586)(next@14.2.3)(react-dom@18.2.0)(react@18.2.0)
+  '@trpc/react-query':
+    specifier: npm:@trpc/react-query@next
+    version: 11.0.0-rc.586(@tanstack/react-query@5.59.15)(@trpc/client@11.0.0-rc.586)(@trpc/server@11.0.0-rc.586)(react-dom@18.2.0)(react@18.2.0)
+  '@trpc/server':
+    specifier: npm:@trpc/server@next
+    version: 11.0.0-rc.586
   '@vercel/analytics':
     specifier: ^1.1.2
     version: 1.1.2
@@ -7739,6 +7751,72 @@ packages:
       postcss-selector-parser: 6.0.10
       tailwindcss: 3.4.1
     dev: true
+
+  /@tanstack/query-core@5.59.13:
+    resolution: {integrity: sha512-Oou0bBu/P8+oYjXsJQ11j+gcpLAMpqW42UlokQYEz4dE7+hOtVO9rVuolJKgEccqzvyFzqX4/zZWY+R/v1wVsQ==}
+    dev: false
+
+  /@tanstack/react-query@5.59.15(react@18.2.0):
+    resolution: {integrity: sha512-QbVlAkTI78wB4Mqgf2RDmgC0AOiJqer2c5k9STOOSXGv1S6ZkY37r/6UpE8DbQ2Du0ohsdoXgFNEyv+4eDoPEw==}
+    peerDependencies:
+      react: ^18 || ^19
+    dependencies:
+      '@tanstack/query-core': 5.59.13
+      react: 18.2.0
+    dev: false
+
+  /@trpc/client@11.0.0-rc.586(@trpc/server@11.0.0-rc.586):
+    resolution: {integrity: sha512-shCIpBzT+SzEbVXbCdpbSrPogG4c9J6hXh+xh5pidY1MTYcBHkeZVBLjy/fVSX+fB9wRoZXNaaoXO+ijYAZBcQ==}
+    peerDependencies:
+      '@trpc/server': 11.0.0-rc.586+3388c9691
+    dependencies:
+      '@trpc/server': 11.0.0-rc.586
+    dev: false
+
+  /@trpc/next@11.0.0-rc.586(@tanstack/react-query@5.59.15)(@trpc/client@11.0.0-rc.586)(@trpc/react-query@11.0.0-rc.586)(@trpc/server@11.0.0-rc.586)(next@14.2.3)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-O9/Id3L76tmCcxIiEOddr9VcjZxXy8s6crApjh3Gy+YKWDR9EHRBWZlw8juFzcGxuF5WgaAlpzmnYHjtwnIjUg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.59.15
+      '@trpc/client': 11.0.0-rc.586+3388c9691
+      '@trpc/react-query': 11.0.0-rc.586+3388c9691
+      '@trpc/server': 11.0.0-rc.586+3388c9691
+      next: '*'
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+    peerDependenciesMeta:
+      '@tanstack/react-query':
+        optional: true
+      '@trpc/react-query':
+        optional: true
+    dependencies:
+      '@tanstack/react-query': 5.59.15(react@18.2.0)
+      '@trpc/client': 11.0.0-rc.586(@trpc/server@11.0.0-rc.586)
+      '@trpc/react-query': 11.0.0-rc.586(@tanstack/react-query@5.59.15)(@trpc/client@11.0.0-rc.586)(@trpc/server@11.0.0-rc.586)(react-dom@18.2.0)(react@18.2.0)
+      '@trpc/server': 11.0.0-rc.586
+      next: 14.2.3(@babel/core@7.25.2)(react-dom@18.2.0)(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /@trpc/react-query@11.0.0-rc.586(@tanstack/react-query@5.59.15)(@trpc/client@11.0.0-rc.586)(@trpc/server@11.0.0-rc.586)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-fYIo9Y9lM2tqTBY9NBT5ZPX4R++SaauOl6qjvnSwmIBupboiueLMMWfMh+cmJiAVim1Hg0OvgoS6WRFIYMlFYg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.59.15
+      '@trpc/client': 11.0.0-rc.586+3388c9691
+      '@trpc/server': 11.0.0-rc.586+3388c9691
+      react: '>=18.2.0'
+      react-dom: '>=18.2.0'
+    dependencies:
+      '@tanstack/react-query': 5.59.15(react@18.2.0)
+      '@trpc/client': 11.0.0-rc.586(@trpc/server@11.0.0-rc.586)
+      '@trpc/server': 11.0.0-rc.586
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /@trpc/server@11.0.0-rc.586:
+    resolution: {integrity: sha512-G0713HRFYyBLjN58DYq88hTH4kfKNZt9GXR0/TkVD7rENpOUBk6LKorqSDQ0y0/8aqu11HdDHsn6vBTWK3D44Q==}
+    dev: false
 
   /@types/aws-lambda@8.10.145:
     resolution: {integrity: sha512-dtByW6WiFk5W5Jfgz1VM+YPA21xMXTuSFoLYIDY0L44jDLLflVPtZkYuu3/YxpGcvjzKFBZLU+GyKjR0HOYtyw==}

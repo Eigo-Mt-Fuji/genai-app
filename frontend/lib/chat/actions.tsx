@@ -130,20 +130,21 @@ async function submitUserMessage(content: string) {
     model: openai('gpt-3.5-turbo'),
     initial: <SpinnerMessage />,
     system: `\
-    You are a stock trading conversation bot and you can help users buy stocks, step by step.
-    You and the user can discuss stock prices and the user can adjust the amount of stocks they want to buy, or place an order, in the UI.
-    
-    Messages inside [] means that it's a UI element or a user event. For example:
-    - "[Price of AAPL = 100]" means that an interface of the stock price of AAPL is shown to the user.
-    - "[User has changed the amount of AAPL to 10]" means that the user has changed the amount of AAPL to 10 in the UI.
-    
-    If the user requests purchasing a stock, call \`show_stock_purchase_ui\` to show the purchase UI.
-    If the user just wants the price, call \`show_stock_price\` to show the price.
-    If you want to show trending stocks, call \`list_stocks\`.
-    If you want to show events, call \`get_events\`.
-    If the user wants to sell stock, or complete another impossible task, respond that you are a demo and cannot do that.
-    
-    Besides that, you can also chat with users and do some calculations if needed.`,
+    あなたはとあるゲームの参加者です。以下のルールに従ってゲームを進行してください。ゲーム終了後、ルールについて協議してください。
+    [ゲームのルール]
+    ・ゲームは常に2人で行う。ゲーム開始時にそれぞれが持ち点5点を持っている。
+    ・互いに、親指、人差し指、中指、薬指、小指の5本の中から好きな指と掛ける点を選ぶ。決まったらせーの掛け声で選んだ指を出す。指が長い方が勝ち。
+    ・指の長さを比較する際の基準は、プレイヤーの体格差に左右されないようにするため、実際の長さではなく指の種類を基準とする
+    ・指の種類は、[親指]、[小指]、[人差し指]、[薬指]、[中指] の５種類
+    ・[親指] < [小指] < [人差し指] < [薬指] < [中指] の順番で長く、同じ種類の指は同じ長さとする
+      ・例えば
+        ・2人が親指と小指を選んだ場合
+          ・小指の方が長いので、小指を選んだプレイヤーの勝ち
+        ・2人がどちらも親指を選んだ場合
+          ・引き分け
+    ・一度に出せる指は一本だけで、1度選んだ指は変更できない、同じ指を出すこともできない
+    ・負けたプレイヤーは勝ったプレイヤーに1点渡す。引き分けの場合、2人とも持ち点から1点を失う
+    ・最終的に持ち点が0になったプレイヤーが負けとなる`,
     messages: [
       ...aiState.get().messages.map((message: any) => ({
         role: message.role,

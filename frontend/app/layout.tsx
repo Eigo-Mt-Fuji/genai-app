@@ -2,7 +2,7 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 
 import '@/app/globals.css'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/utils'
 import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
 import { Header } from '@/components/header'
